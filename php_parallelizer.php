@@ -14,9 +14,9 @@
    * $exampleClass = new ExampleClass;
    *
    * $phpParallelizer = new PhpParallelizer;
-   * $phpParallelizer->addJob('exampleFunction', array('param1' => 'value1', 'param2' => 'value2'));
-   * $phpParallelizer->addJob(array('ExampleClass', 'staticMethod'), array('param1' => 'value1', 'param2' => 'value2'));
-   * $phpParallelizer->addJob(array($exampleClass, 'nonStaticMethod'), array('param1' => 'value1', 'param2' => 'value2'));
+   * $phpParallelizer->addJob('exampleFunction', array('param1', 'param2'));
+   * $phpParallelizer->addJob(array('ExampleClass', 'staticMethod'), array('param1', 'param2'));
+   * $phpParallelizer->addJob(array($exampleClass, 'nonStaticMethod'), array('param1', 'param2'));
    * $phpParallelizer->run();
    * $log = $phpParallelizer->getLog();
    * </code>
@@ -122,7 +122,7 @@
         sleep(1);
       }
       
-      $this->jobs = array();
+      $this->cleanup();
     }
 
     /**
@@ -132,8 +132,8 @@
      * @since 09/20/2011
      * @version 1.0
      * @param mixed $function Callback
-     * @param array $params = array() Parameters to be passed to the function, as indexed array
-     * @return bool
+     * @param array $params = array() Parameters to be passed to the function, as indexed array (optional)
+     * @return bool true on success, false if $function isn't callable
      */
     public function addJob($function, $params = array()) {
       if (is_callable($function)) {
@@ -148,6 +148,19 @@
       else {
         return false;
       }
+    }
+
+    /**
+     * Cleanup after run
+     * Resets the job-queue and the logs
+     *
+     * @author Maximilian Walter
+     * @since 09/21/2011
+     * @version 1.0
+     * @return void
+     */
+    protected function cleanup() {
+      $this->jobs = $this->log = array();
     }
 
     /**
@@ -196,12 +209,12 @@
     }
 
     /**
-     * Returns all log-entries
+     * Returns all log-entries as array
      *
      * @author Maximilian Walter
      * @since 09/21/2011
      * @version 1.0
-     * @return array
+     * @return array All log-entries
      */
     public function getLog() {
       return $this->log;
