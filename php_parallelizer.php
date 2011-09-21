@@ -14,6 +14,7 @@
    * $exampleClass = new ExampleClass;
    *
    * $phpParallelizer = new PhpParallelizer;
+   * $phpParallelizer->setMaxProcesses(2);
    * $phpParallelizer->addJob('exampleFunction', array('param1', 'param2'));
    * $phpParallelizer->addJob(array('ExampleClass', 'staticMethod'), array('param1', 'param2'));
    * $phpParallelizer->addJob(array($exampleClass, 'nonStaticMethod'), array('param1', 'param2'));
@@ -59,6 +60,13 @@
     protected $signalQueue = array();
 
     /**
+     * Number of concurrent processes
+     *
+     * @var int
+     */
+    protected $maxProcesses = 4;
+
+    /**
      * Logging
      *
      * @var array
@@ -98,6 +106,10 @@
       }
 
       foreach ($this->jobs as $jobId => $job) {
+        while ($this->maxProcesses <= count($this->currentJobs)) {
+          sleep(1);
+        }
+      
         $pid = pcntl_fork();
 
         if (-1 == $pid) {
@@ -140,7 +152,7 @@
         $jobId = uniqid();
         $this->jobs[$jobId] = array(
           'function' => $function,
-          'params' => $params,
+          'params'   => $params,
         );
         
         return true;
@@ -161,6 +173,25 @@
      */
     protected function cleanup() {
       $this->jobs = $this->log = array();
+    }
+
+    /**
+     * Sets the maximum number of concurrent processes
+     *
+     * @author Maximilian Walter
+     * @since 09/21/2011
+     * @version 1.0
+     * @param int $max
+     * @return bool
+     */
+    public function setMaxProcesses($max) {
+      if (is_int($max) && 0 < $max) {
+        $this->maxProcesses = $max;
+        return true;
+      }
+      else {
+        return false;
+      }
     }
 
     /**
